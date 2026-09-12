@@ -177,7 +177,18 @@ func _run_automated_test() -> void:
 	# --- TESTE DO CICLO DIA/NOITE (ESTILO CLÁSSICO) ---
 	print("-> Testando transição de Ciclo Dia/Noite...")
 	assert(day_night_cycle.is_night == false, "Deve iniciar como dia!")
-	assert(day_night_cycle.get_invert_progress() == 0.0, "Progresso inicial do shader deve ser 0.0!")
+	assert(day_night_cycle.get_invert_progress() == 1.0, "Progresso inicial do shader deve ser 1.0 (dia claro)!")
+	assert(world.sol_sprite.modulate.a == 1.0, "Sol deve iniciar visível no dia!")
+	assert(world.lua_sprite.modulate.a == 0.0, "Lua deve iniciar invisível no dia!")
+	assert(world.estrelas_node.modulate.a == 0.0, "Estrelas devem iniciar invisíveis no dia!")
+
+	# Verifica que elementos de cenário decorativo não possuem colisores
+	var scenery = world.parallax.get_node_or_null("LayerCenarioChao")
+	assert(scenery != null, "Camada de cenário decorativo deve existir!")
+	for child in scenery.get_children():
+		assert(child is Sprite2D, "Elementos do cenário decorativo devem ser apenas Sprite2D!")
+		assert(not (child is CollisionObject2D or child is CollisionShape2D), "Cenário não pode ter colisores!")
+	print("✓ Cenário decorativo verificado: nenhum colisor presente!")
 
 	# Simula atingir pontuação de 700 (virada para noite)
 	GameManager.score = 700
@@ -201,7 +212,7 @@ func _run_automated_test() -> void:
 	GameManager.start_game()
 	await get_tree().process_frame
 	assert(day_night_cycle.is_night == false, "Novo jogo deve voltar para o dia!")
-	assert(day_night_cycle.get_invert_progress() == 0.0, "Novo jogo deve zerar o invert_progress!")
+	assert(day_night_cycle.get_invert_progress() == 1.0, "Novo jogo deve restaurar invert_progress para 1.0 (dia claro)!")
 	print("✓ Reset do ciclo verificado com sucesso!")
 
 	# --- TESTE DO BOTÃO TOGGLE DIA/NOITE ---

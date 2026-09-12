@@ -10,6 +10,11 @@ var ground_body: StaticBody2D
 var player: CharacterBody2D
 var spawner: Node
 
+# Corpos Celestes Dinâmicos
+var sol_sprite: Sprite2D
+var lua_sprite: Sprite2D
+var estrelas_node: Node2D
+
 const GROUND_Y: float = 460.0
 
 func _ready() -> void:
@@ -17,13 +22,14 @@ func _ready() -> void:
 	_build_ground()
 	_build_player()
 	_build_spawner()
+	EventBus.day_night_changed.connect(_on_day_night_changed)
 
 func _build_parallax() -> void:
 	parallax = ParallaxBackground.new()
 	parallax.name = "ParallaxBackground"
 	add_child(parallax)
 
-	# 0. Fundo preto absoluto (#000000)
+	# 0. Fundo preto base
 	var bg_layer := ParallaxLayer.new()
 	bg_layer.name = "LayerBackground"
 	bg_layer.motion_scale = Vector2(0.0, 0.0)
@@ -34,18 +40,45 @@ func _build_parallax() -> void:
 	bg_layer.add_child(bg_rect)
 	parallax.add_child(bg_layer)
 
-	# 1. Sol (estático no topo direito)
+	# 1. Estrelas (visíveis apenas à noite, movimento parallax muito lento)
+	var estrelas_layer := ParallaxLayer.new()
+	estrelas_layer.name = "LayerEstrelas"
+	estrelas_layer.motion_scale = Vector2(0.05, 0.0)
+	estrelas_layer.motion_mirroring = Vector2(960.0, 0.0)
+	estrelas_node = Node2D.new()
+	estrelas_node.name = "EstrelasContainer"
+	estrelas_node.modulate.a = 0.0 # Começa invisível de dia
+	_populate_stars(estrelas_node)
+	estrelas_layer.add_child(estrelas_node)
+	parallax.add_child(estrelas_layer)
+
+	# 2. Sol (visível apenas de dia)
 	var sol_layer := ParallaxLayer.new()
 	sol_layer.name = "LayerSol"
 	sol_layer.motion_scale = Vector2(0.0, 0.0)
-	var sol_sprite := Sprite2D.new()
+	sol_sprite = Sprite2D.new()
+	sol_sprite.name = "SolSprite"
 	sol_sprite.texture = load("res://assets/sol.png")
 	sol_sprite.scale = Vector2(0.25, 0.25)
 	sol_sprite.position = Vector2(800.0, 90.0)
+	sol_sprite.modulate.a = 1.0 # Começa visível de dia
 	sol_layer.add_child(sol_sprite)
 	parallax.add_child(sol_layer)
 
-	# 2. Montes (movimento lento)
+	# 3. Lua (visível apenas à noite)
+	var lua_layer := ParallaxLayer.new()
+	lua_layer.name = "LayerLua"
+	lua_layer.motion_scale = Vector2(0.0, 0.0)
+	lua_sprite = Sprite2D.new()
+	lua_sprite.name = "LuaSprite"
+	lua_sprite.texture = load("res://assets/lua.png")
+	lua_sprite.scale = Vector2(0.22, 0.22)
+	lua_sprite.position = Vector2(800.0, 90.0)
+	lua_sprite.modulate.a = 0.0 # Começa invisível de dia
+	lua_layer.add_child(lua_sprite)
+	parallax.add_child(lua_layer)
+
+	# 4. Montes (silhueta montanhosa distante — movimento lento)
 	var montes_layer := ParallaxLayer.new()
 	montes_layer.name = "LayerMontes"
 	montes_layer.motion_scale = Vector2(0.1, 0.0)
@@ -59,7 +92,7 @@ func _build_parallax() -> void:
 	montes_layer.add_child(montes_sprite)
 	parallax.add_child(montes_layer)
 
-	# 3. Nuvem Grande (nuvem2.png - movimento médio)
+	# 5. Nuvem Grande (nuvem2.png — movimento médio)
 	var nuvem_g_layer := ParallaxLayer.new()
 	nuvem_g_layer.name = "LayerNuvemGrande"
 	nuvem_g_layer.motion_scale = Vector2(0.25, 0.0)
@@ -71,7 +104,7 @@ func _build_parallax() -> void:
 	nuvem_g_layer.add_child(nuvem_g_sprite)
 	parallax.add_child(nuvem_g_layer)
 
-	# 4. Nuvem Média (nuvem.png - movimento rápido)
+	# 6. Nuvem Média (nuvem.png — movimento rápido)
 	var nuvem_m_layer := ParallaxLayer.new()
 	nuvem_m_layer.name = "LayerNuvemMedia"
 	nuvem_m_layer.motion_scale = Vector2(0.4, 0.0)
@@ -83,21 +116,92 @@ func _build_parallax() -> void:
 	nuvem_m_layer.add_child(nuvem_m_sprite)
 	parallax.add_child(nuvem_m_layer)
 
-	# 5. Grama decorativa no chão (grama.png - velocidade 1.0)
+	# 7. Elementos Cenográficos de Chão (Árvores, Arbustos, Pedras, Grama — SEM BOX COLLIDER)
+	_build_scenery_layer()
+
+func _populate_stars(parent: Node2D) -> void:
+	# Distribuição de estrelas (estrela1 a estrela5) espalhadas pelo céu
+	var star_textures: Array[Texture2D] = [
+		load("res://assets/estrela1.png"),
+		load("res://assets/estrela2.png"),
+		load("res://assets/estrela3.png"),
+		load("res://assets/estrela4.png"),
+		load("res://assets/estrela5.png")
+	]
+	var star_positions: Array[Vector2] = [
+		Vector2(60.0, 50.0),
+		Vector2(140.0, 120.0),
+		Vector2(220.0, 60.0),
+		Vector2(320.0, 150.0),
+		Vector2(410.0, 80.0),
+		Vector2(500.0, 130.0),
+		Vector2(590.0, 55.0),
+		Vector2(680.0, 100.0),
+		Vector2(750.0, 170.0),
+		Vector2(850.0, 60.0),
+		Vector2(910.0, 140.0)
+	]
+	for i in range(star_positions.size()):
+		var s := Sprite2D.new()
+		s.texture = star_textures[i % star_textures.size()]
+		s.position = star_positions[i]
+		s.scale = Vector2(0.32, 0.32)
+		parent.add_child(s)
+
+func _build_scenery_layer() -> void:
+	# Camada de Parallax de cenário rasteiro sem colisores, sincronizada com o chão (motion_scale 1.0)
+	var scenery_layer := ParallaxLayer.new()
+	scenery_layer.name = "LayerCenarioChao"
+	scenery_layer.motion_scale = Vector2(1.0, 0.0)
+	scenery_layer.motion_mirroring = Vector2(1920.0, 0.0)
+	scenery_layer.z_index = -1 # Atrás do player e dos cactos de obstáculo
+
+	var arvore_tex: Texture2D = load("res://assets/arvore.png")
+	var arbusto_tex: Texture2D = load("res://assets/arbusto.png")
+	var pedra_tex: Texture2D = load("res://assets/pedra.png")
 	var grama_tex: Texture2D = load("res://assets/grama.png")
+
+	# 1. Árvores (arvore.png 256x384 -> scale 0.32 -> altura ~123px, base no chão 460)
+	if arvore_tex:
+		var arvore_x := [280.0, 1260.0]
+		for ax in arvore_x:
+			var s := Sprite2D.new()
+			s.texture = arvore_tex
+			s.scale = Vector2(0.32, 0.32)
+			s.position = Vector2(ax, GROUND_Y - 60.0)
+			scenery_layer.add_child(s)
+
+	# 2. Arbustos (arbusto.png 384x256 -> scale 0.28 -> altura ~72px, base no chão 460)
+	if arbusto_tex:
+		var arbusto_x := [520.0, 960.0, 1680.0]
+		for bx in arbusto_x:
+			var s := Sprite2D.new()
+			s.texture = arbusto_tex
+			s.scale = Vector2(0.28, 0.28)
+			s.position = Vector2(bx, GROUND_Y - 36.0)
+			scenery_layer.add_child(s)
+
+	# 3. Pedras (pedra.png 96x96 -> scale 0.35 -> altura ~34px, base no chão 460)
+	if pedra_tex:
+		var pedra_x := [160.0, 740.0, 1420.0, 1860.0]
+		for px in pedra_x:
+			var s := Sprite2D.new()
+			s.texture = pedra_tex
+			s.scale = Vector2(0.35, 0.35)
+			s.position = Vector2(px, GROUND_Y - 17.0)
+			scenery_layer.add_child(s)
+
+	# 4. Tufos de grama (grama.png 128x192 -> scale 0.24 -> altura ~46px, base no chão 460)
 	if grama_tex:
-		var grama_layer := ParallaxLayer.new()
-		grama_layer.name = "LayerGrama"
-		grama_layer.motion_scale = Vector2(1.0, 0.0)
-		grama_layer.motion_mirroring = Vector2(960.0, 0.0)
-		var offsets := [120.0, 360.0, 620.0, 840.0]
-		for gx in offsets:
-			var gs := Sprite2D.new()
-			gs.texture = grama_tex
-			gs.scale = Vector2(0.25, 0.25)
-			gs.position = Vector2(gx, GROUND_Y - 20.0)
-			grama_layer.add_child(gs)
-		parallax.add_child(grama_layer)
+		var grama_x := [80.0, 420.0, 650.0, 860.0, 1120.0, 1540.0]
+		for gx in grama_x:
+			var s := Sprite2D.new()
+			s.texture = grama_tex
+			s.scale = Vector2(0.24, 0.24)
+			s.position = Vector2(gx, GROUND_Y - 23.0)
+			scenery_layer.add_child(s)
+
+	parallax.add_child(scenery_layer)
 
 func _build_ground() -> void:
 	var ground_node := Node2D.new()
@@ -137,6 +241,25 @@ func _build_spawner() -> void:
 	spawner.set("spawn_x", 1050.0)
 	spawner.set("ground_y", GROUND_Y - 56.0)
 	add_child(spawner)
+
+func _on_day_night_changed(is_night: bool) -> void:
+	var tween := create_tween().set_parallel(true)
+	if is_night:
+		# Transição para Noite: apaga sol, acende lua e estrelas
+		if sol_sprite:
+			tween.tween_property(sol_sprite, "modulate:a", 0.0, 1.0)
+		if lua_sprite:
+			tween.tween_property(lua_sprite, "modulate:a", 1.0, 1.0)
+		if estrelas_node:
+			tween.tween_property(estrelas_node, "modulate:a", 1.0, 1.0)
+	else:
+		# Transição para Dia: acende sol, apaga lua e estrelas
+		if sol_sprite:
+			tween.tween_property(sol_sprite, "modulate:a", 1.0, 1.0)
+		if lua_sprite:
+			tween.tween_property(lua_sprite, "modulate:a", 0.0, 1.0)
+		if estrelas_node:
+			tween.tween_property(estrelas_node, "modulate:a", 0.0, 1.0)
 
 func _process(delta: float) -> void:
 	if GameManager.state != GameManager.GameState.PLAYING:

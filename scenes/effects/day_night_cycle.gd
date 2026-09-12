@@ -1,6 +1,6 @@
 ## DayNightCycle — gerencia a transição dia/noite estilo clássico (Chrome Dino)
-## Aplica um shader de pós-processamento que inverte as cores (1.0 - cor)
-## a cada 700 pontos de pontuação, com transição suave via Tween.
+## Dia com fundo claro suave (#F5F5F5) e noite com fundo escuro (#000000)
+## com transição suave via Tween a cada 700 pontos ou botão/tecla N.
 class_name DayNightCycle
 extends CanvasLayer
 
@@ -19,12 +19,15 @@ var _tween: Tween
 const INVERT_SHADER_CODE: String = """shader_type canvas_item;
 
 uniform sampler2D screen_texture : hint_screen_texture, filter_nearest;
-uniform float invert_progress : hint_range(0.0, 1.0) = 0.0;
+uniform float invert_progress : hint_range(0.0, 1.0) = 1.0;
 
 void fragment() {
 	vec4 screen_color = texture(screen_texture, SCREEN_UV);
-	vec3 inverted = vec3(1.0) - screen_color.rgb;
-	COLOR = vec4(mix(screen_color.rgb, inverted, invert_progress), screen_color.a);
+	// Dia (invert_progress = 1.0): Fundo claro suave (0.96) e elementos em silhueta escura (0.10)
+	// Noite (invert_progress = 0.0): Fundo escuro (0.0) e elementos brilhando em branco (1.0)
+	vec3 day_color = vec3(0.96) - screen_color.rgb * 0.86;
+	vec3 night_color = screen_color.rgb;
+	COLOR = vec4(mix(night_color, day_color, invert_progress), screen_color.a);
 }
 """
 
@@ -47,7 +50,8 @@ func _setup_fullscreen_shader() -> void:
 
 	shader_material = ShaderMaterial.new()
 	shader_material.shader = shader
-	shader_material.set_shader_parameter("invert_progress", 0.0)
+	# Começa de DIA com fundo claro (invert_progress = 1.0)
+	shader_material.set_shader_parameter("invert_progress", 1.0)
 
 	color_rect.material = shader_material
 	add_child(color_rect)
@@ -83,7 +87,8 @@ func _set_night_mode(to_night: bool) -> void:
 		_tween.kill()
 
 	_tween = create_tween()
-	var target: float = 1.0 if is_night else 0.0
+	# Noite = 0.0 (fundo escuro), Dia = 1.0 (fundo claro)
+	var target: float = 0.0 if is_night else 1.0
 	_tween.tween_property(shader_material, "shader_parameter/invert_progress", target, FADE_DURATION)
 
 func reset_cycle() -> void:
@@ -96,7 +101,7 @@ func reset_cycle() -> void:
 		_tween.kill()
 
 	if shader_material:
-		shader_material.set_shader_parameter("invert_progress", 0.0)
+		shader_material.set_shader_parameter("invert_progress", 1.0)
 
 	if was_night:
 		EventBus.day_night_changed.emit(false)
@@ -104,7 +109,7 @@ func reset_cycle() -> void:
 func get_invert_progress() -> float:
 	if shader_material:
 		return shader_material.get_shader_parameter("invert_progress") as float
-	return 0.0
+	return 1.0
 
 func _on_game_started() -> void:
 	reset_cycle()
