@@ -179,7 +179,9 @@ func _run_automated_test() -> void:
 	assert(day_night_cycle.is_night == false, "Deve iniciar como dia!")
 	assert(day_night_cycle.get_invert_progress() == 1.0, "Progresso inicial do shader deve ser 1.0 (dia claro)!")
 	assert(world.sol_sprite.modulate.a == 1.0, "Sol deve iniciar visível no dia!")
+	assert(world.sol_sprite.position.y == 90.0, "Sol deve iniciar no alto do céu!")
 	assert(world.lua_sprite.modulate.a == 0.0, "Lua deve iniciar invisível no dia!")
+	assert(world.lua_sprite.position.y == 350.0, "Lua deve iniciar no horizonte!")
 	assert(world.estrelas_node.modulate.a == 0.0, "Estrelas devem iniciar invisíveis no dia!")
 
 	# Verifica que elementos de cenário decorativo não possuem colisores
@@ -213,6 +215,8 @@ func _run_automated_test() -> void:
 	await get_tree().process_frame
 	assert(day_night_cycle.is_night == false, "Novo jogo deve voltar para o dia!")
 	assert(day_night_cycle.get_invert_progress() == 1.0, "Novo jogo deve restaurar invert_progress para 1.0 (dia claro)!")
+	assert(world.sol_sprite.position.y == 90.0, "Novo jogo deve restaurar Sol no alto do céu!")
+	assert(world.lua_sprite.position.y == 350.0, "Novo jogo deve restaurar Lua no horizonte!")
 	print("✓ Reset do ciclo verificado com sucesso!")
 
 	# --- TESTE DO BOTÃO TOGGLE DIA/NOITE ---

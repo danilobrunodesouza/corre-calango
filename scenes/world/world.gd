@@ -14,7 +14,11 @@ var spawner: Node
 var sol_sprite: Sprite2D
 var lua_sprite: Sprite2D
 var estrelas_node: Node2D
+var _celestial_tween: Tween
 
+const SKY_Y: float = 90.0
+const HORIZON_Y: float = 350.0
+const CELESTIAL_X: float = 800.0
 const GROUND_Y: float = 460.0
 
 func _ready() -> void:
@@ -23,6 +27,8 @@ func _ready() -> void:
 	_build_player()
 	_build_spawner()
 	EventBus.day_night_changed.connect(_on_day_night_changed)
+	GameManager.game_started.connect(_reset_celestials)
+	GameManager.restart_requested.connect(_reset_celestials)
 
 func _build_parallax() -> void:
 	parallax = ParallaxBackground.new()
@@ -60,8 +66,8 @@ func _build_parallax() -> void:
 	sol_sprite.name = "SolSprite"
 	sol_sprite.texture = load("res://assets/sol.png")
 	sol_sprite.scale = Vector2(0.25, 0.25)
-	sol_sprite.position = Vector2(800.0, 90.0)
-	sol_sprite.modulate.a = 1.0 # Começa visível de dia
+	sol_sprite.position = Vector2(CELESTIAL_X, SKY_Y)
+	sol_sprite.modulate.a = 1.0 # Começa visível no alto do céu de dia
 	sol_layer.add_child(sol_sprite)
 	parallax.add_child(sol_layer)
 
@@ -73,8 +79,8 @@ func _build_parallax() -> void:
 	lua_sprite.name = "LuaSprite"
 	lua_sprite.texture = load("res://assets/lua.png")
 	lua_sprite.scale = Vector2(0.22, 0.22)
-	lua_sprite.position = Vector2(800.0, 90.0)
-	lua_sprite.modulate.a = 0.0 # Começa invisível de dia
+	lua_sprite.position = Vector2(CELESTIAL_X, HORIZON_Y)
+	lua_sprite.modulate.a = 0.0 # Começa invisível abaixo do horizonte de dia
 	lua_layer.add_child(lua_sprite)
 	parallax.add_child(lua_layer)
 
@@ -242,24 +248,53 @@ func _build_spawner() -> void:
 	spawner.set("ground_y", GROUND_Y - 56.0)
 	add_child(spawner)
 
+func _reset_celestials() -> void:
+	if _celestial_tween and _celestial_tween.is_valid():
+		_celestial_tween.kill()
+	if sol_sprite:
+		sol_sprite.position = Vector2(CELESTIAL_X, SKY_Y)
+		sol_sprite.modulate.a = 1.0
+	if lua_sprite:
+		lua_sprite.position = Vector2(CELESTIAL_X, HORIZON_Y)
+		lua_sprite.modulate.a = 0.0
+	if estrelas_node:
+		estrelas_node.modulate.a = 0.0
+
 func _on_day_night_changed(is_night: bool) -> void:
-	var tween := create_tween().set_parallel(true)
+	if _celestial_tween and _celestial_tween.is_valid():
+		_celestial_tween.kill()
+
+	_celestial_tween = create_tween().set_parallel(true)
 	if is_night:
-		# Transição para Noite: apaga sol, acende lua e estrelas
+		# Transição para Noite:
+		# Sol desce em direção aos montes (pôr do sol) e apaga
 		if sol_sprite:
-			tween.tween_property(sol_sprite, "modulate:a", 0.0, 1.0)
+			_celestial_tween.tween_property(sol_sprite, "position:y", HORIZON_Y, 1.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+			_celestial_tween.tween_property(sol_sprite, "modulate:a", 0.0, 1.0)
+		# Lua sobe a partir dos montes até o alto do céu e acende
 		if lua_sprite:
-			tween.tween_property(lua_sprite, "modulate:a", 1.0, 1.0)
+			if lua_sprite.modulate.a == 0.0:
+				lua_sprite.position.y = HORIZON_Y
+			_celestial_tween.tween_property(lua_sprite, "position:y", SKY_Y, 1.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			_celestial_tween.tween_property(lua_sprite, "modulate:a", 1.0, 1.0)
+		# Estrelas acendem suavemente
 		if estrelas_node:
-			tween.tween_property(estrelas_node, "modulate:a", 1.0, 1.0)
+			_celestial_tween.tween_property(estrelas_node, "modulate:a", 1.0, 1.2)
 	else:
-		# Transição para Dia: acende sol, apaga lua e estrelas
-		if sol_sprite:
-			tween.tween_property(sol_sprite, "modulate:a", 1.0, 1.0)
+		# Transição para Dia:
+		# Lua desce em direção aos montes e apaga
 		if lua_sprite:
-			tween.tween_property(lua_sprite, "modulate:a", 0.0, 1.0)
+			_celestial_tween.tween_property(lua_sprite, "position:y", HORIZON_Y, 1.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+			_celestial_tween.tween_property(lua_sprite, "modulate:a", 0.0, 1.0)
+		# Sol sobe a partir dos montes até o alto do céu e acende
+		if sol_sprite:
+			if sol_sprite.modulate.a == 0.0:
+				sol_sprite.position.y = HORIZON_Y
+			_celestial_tween.tween_property(sol_sprite, "position:y", SKY_Y, 1.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			_celestial_tween.tween_property(sol_sprite, "modulate:a", 1.0, 1.0)
+		# Estrelas apagam
 		if estrelas_node:
-			tween.tween_property(estrelas_node, "modulate:a", 0.0, 1.0)
+			_celestial_tween.tween_property(estrelas_node, "modulate:a", 0.0, 1.0)
 
 func _process(delta: float) -> void:
 	if GameManager.state != GameManager.GameState.PLAYING:
