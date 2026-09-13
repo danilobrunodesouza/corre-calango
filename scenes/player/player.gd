@@ -8,11 +8,11 @@ const RunStateScript = preload("res://scenes/player/states/run_state.gd")
 const JumpStateScript = preload("res://scenes/player/states/jump_state.gd")
 const DuckStateScript = preload("res://scenes/player/states/duck_state.gd")
 
-const GRAVITY: float = 2000.0
-const JUMP_FORCE: float = -750.0
-const NORMAL_HEIGHT: float = 64.0
-const DUCK_HEIGHT: float = 32.0
-const SPRITE_SCALE: Vector2 = Vector2(0.35, 0.35)
+const GRAVITY: float = 1400.0
+const JUMP_FORCE: float = -525.0
+const NORMAL_HEIGHT: float = 44.8
+const DUCK_HEIGHT: float = 22.4
+const SPRITE_SCALE: Vector2 = Vector2(0.245, 0.245)
 
 ## Modo imortal para testes (sincronizado com GameManager.immortal)
 @export var immortal: bool:
@@ -47,7 +47,7 @@ func _ensure_child_nodes() -> void:
 		collision = CollisionShape2D.new()
 		collision.name = "CollisionShape2D"
 		var shape := CapsuleShape2D.new()
-		shape.radius = 20.0
+		shape.radius = 14.0
 		shape.height = NORMAL_HEIGHT
 		collision.shape = shape
 		add_child(collision)
@@ -65,7 +65,7 @@ func _ensure_child_nodes() -> void:
 		hurtbox_collision = CollisionShape2D.new()
 		hurtbox_collision.name = "CollisionShape2D"
 		var hshape := CapsuleShape2D.new()
-		hshape.radius = 18.0
+		hshape.radius = 12.6
 		hshape.height = NORMAL_HEIGHT * 0.85
 		hurtbox_collision.shape = hshape
 		hurtbox_area.add_child(hurtbox_collision)

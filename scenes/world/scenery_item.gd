@@ -30,7 +30,7 @@ func setup(id: String, type: String, config: Dictionary) -> void:
 	if ResourceLoader.exists(tex_path):
 		sprite.texture = load(tex_path)
 
-	var sc: float = config.get("scale", 0.3)
+	var sc: float = config.get("scale", 0.21)
 	sprite.scale = Vector2(sc, sc)
 
 	z_index = config.get("z_index", -1 if type == "ground" else -3)

@@ -73,7 +73,7 @@ func _build_parallax() -> void:
 	sol_sprite = Sprite2D.new()
 	sol_sprite.name = "SolSprite"
 	sol_sprite.texture = load("res://assets/sol.png")
-	sol_sprite.scale = Vector2(0.25, 0.25)
+	sol_sprite.scale = Vector2(0.175, 0.175)
 	sol_sprite.position = Vector2(CELESTIAL_X, SKY_Y)
 	sol_sprite.modulate.a = 1.0 # Começa visível no alto do céu de dia
 	sol_layer.add_child(sol_sprite)
@@ -86,23 +86,37 @@ func _build_parallax() -> void:
 	lua_sprite = Sprite2D.new()
 	lua_sprite.name = "LuaSprite"
 	lua_sprite.texture = load("res://assets/lua.png")
-	lua_sprite.scale = Vector2(0.22, 0.22)
+	lua_sprite.scale = Vector2(0.154, 0.154)
 	lua_sprite.position = Vector2(CELESTIAL_X, HORIZON_Y)
 	lua_sprite.modulate.a = 0.0 # Começa invisível abaixo do horizonte de dia
 	lua_layer.add_child(lua_sprite)
 	parallax.add_child(lua_layer)
 
-	# 4. Montes (silhueta montanhosa distante — movimento lento)
+	# 4. Parallax 2 (silhueta de fundo mais alta e distante — reduzida pela metade: escala 0.1225)
+	var p2_layer := ParallaxLayer.new()
+	p2_layer.name = "LayerParallax2"
+	p2_layer.motion_scale = Vector2(0.03, 0.0) # Mais distante: scroll ultra lento
+	var p2_tex: Texture2D = load("res://assets/parallax2.png")
+	var p2_w: float = 7680.0 * 0.1225 # Escala reduzida pela metade (0.245 -> 0.1225)
+	p2_layer.motion_mirroring = Vector2(p2_w, 0.0)
+	var p2_sprite := Sprite2D.new()
+	p2_sprite.texture = p2_tex
+	p2_sprite.scale = Vector2(0.1225, 0.1225)
+	p2_sprite.position = Vector2(p2_w * 0.5, 290.0)
+	p2_layer.add_child(p2_sprite)
+	parallax.add_child(p2_layer)
+
+	# 5. Montes (montanhas intermediárias à frente de Parallax2 — reduzidas em 30%)
 	var montes_layer := ParallaxLayer.new()
 	montes_layer.name = "LayerMontes"
 	montes_layer.motion_scale = Vector2(0.1, 0.0)
 	var montes_tex: Texture2D = load("res://assets/montes.png")
-	var montes_w: float = 7680.0 * 0.35
+	var montes_w: float = 7680.0 * 0.245
 	montes_layer.motion_mirroring = Vector2(montes_w, 0.0)
 	var montes_sprite := Sprite2D.new()
 	montes_sprite.texture = montes_tex
-	montes_sprite.scale = Vector2(0.35, 0.35)
-	montes_sprite.position = Vector2(montes_w * 0.5, 360.0)
+	montes_sprite.scale = Vector2(0.245, 0.245)
+	montes_sprite.position = Vector2(montes_w * 0.5, 375.0)
 	montes_layer.add_child(montes_sprite)
 	parallax.add_child(montes_layer)
 
@@ -132,7 +146,7 @@ func _populate_stars(parent: Node2D) -> void:
 		var s := Sprite2D.new()
 		s.texture = star_textures[i % star_textures.size()]
 		s.position = star_positions[i]
-		s.scale = Vector2(0.32, 0.32)
+		s.scale = Vector2(0.224, 0.224)
 		parent.add_child(s)
 
 func _build_ground() -> void:
@@ -140,14 +154,14 @@ func _build_ground() -> void:
 	ground_node.name = "Ground"
 	add_child(ground_node)
 
-	# Sprite contínuo do chão com linha.png
+	# Sprite contínuo do chão com linha.png reduzida em 30%
 	ground_sprite = Sprite2D.new()
 	ground_sprite.name = "GroundSprite"
 	ground_sprite.texture = load("res://assets/linha.png")
 	ground_sprite.region_enabled = true
 	ground_sprite.region_rect = Rect2(0.0, 0.0, 3840.0, 200.0)
-	ground_sprite.scale = Vector2(0.5, 0.5)
-	ground_sprite.position = Vector2(480.0, GROUND_Y + 45.0)
+	ground_sprite.scale = Vector2(0.35, 0.35)
+	ground_sprite.position = Vector2(480.0, GROUND_Y + 31.5)
 	ground_node.add_child(ground_sprite)
 
 	# Corpo físico estático para o chão
@@ -164,14 +178,14 @@ func _build_ground() -> void:
 func _build_player() -> void:
 	player = PlayerScript.new() as CharacterBody2D
 	player.name = "Player"
-	player.position = Vector2(120.0, GROUND_Y - 40.0)
+	player.position = Vector2(120.0, GROUND_Y - 28.0)
 	add_child(player)
 
 func _build_spawner() -> void:
 	spawner = ObstacleSpawnerScript.new()
 	spawner.name = "ObstacleSpawner"
 	spawner.set("spawn_x", 1050.0)
-	spawner.set("ground_y", GROUND_Y - 56.0)
+	spawner.set("ground_y", GROUND_Y - 39.2)
 	add_child(spawner)
 
 func _reset_celestials() -> void:

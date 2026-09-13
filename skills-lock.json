@@ -17,6 +17,26 @@
       "source": "local",
       "sourceType": "workspace",
       "skillPath": "skills/godot-runner-scenery/SKILL.md"
+    },
+    "godot-runner-obstacles": {
+      "source": "local",
+      "sourceType": "workspace",
+      "skillPath": "skills/godot-runner-obstacles/SKILL.md"
+    },
+    "godot-runner-balancer": {
+      "source": "local",
+      "sourceType": "workspace",
+      "skillPath": "skills/godot-runner-balancer/SKILL.md"
+    },
+    "godot-game-juice": {
+      "source": "local",
+      "sourceType": "workspace",
+      "skillPath": "skills/godot-game-juice/SKILL.md"
+    },
+    "godot-parallax-layers": {
+      "source": "local",
+      "sourceType": "workspace",
+      "skillPath": "skills/godot-parallax-layers/SKILL.md"
     }
   }
 }

@@ -5,7 +5,7 @@ const ObjectPoolScript = preload("res://scenes/obstacles/object_pool.gd")
 const ObstacleScript = preload("res://scenes/obstacles/obstacle.gd")
 
 @export var spawn_x: float = 1050.0
-@export var ground_y: float = 404.0
+@export var ground_y: float = 420.8
 
 var _pool_tall: Node
 var _pool_wide: Node

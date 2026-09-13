@@ -161,7 +161,7 @@ func _run_automated_test() -> void:
 	Input.action_release("jump")
 
 	assert(sm.get("current_state").name == "Jump", "Estado atual deve ser Jump!")
-	assert(player.velocity.y < -500.0, "Velocity.y deve ser negativa durante o pulo! Atual: %f" % player.velocity.y)
+	assert(player.velocity.y < -400.0, "Velocity.y deve ser negativa durante o pulo! Atual: %f" % player.velocity.y)
 	print("✓ PULO EXECUTADO COM SUCESSO! Velocity.y: ", player.velocity.y, " | Estado: ", sm.get("current_state").name)
 
 	# Aguarda atingir o ápice e aterrissar
@@ -206,6 +206,16 @@ func _run_automated_test() -> void:
 			assert(subchild is Sprite2D, "Subnós do cenário devem ser Sprite2D!")
 			assert(not (subchild is CollisionObject2D or subchild is CollisionShape2D), "Subnós não podem ter colisores!")
 	print("✓ Cenário decorativo verificado: nenhum colisor presente!")
+
+	# Verifica camadas de Parallax (LayerParallax2 reduzida pela metade e LayerMontes reduzida em 30%)
+	var p2_layer: ParallaxLayer = world.parallax.get_node_or_null("LayerParallax2") as ParallaxLayer
+	assert(p2_layer != null, "LayerParallax2 deve existir no ParallaxBackground!")
+	assert(is_equal_approx(p2_layer.motion_mirroring.x, 940.8), "LayerParallax2 deve ter motion_mirroring exato de 940.8!")
+
+	var montes_layer: ParallaxLayer = world.parallax.get_node_or_null("LayerMontes") as ParallaxLayer
+	assert(montes_layer != null, "LayerMontes deve existir no ParallaxBackground!")
+	assert(is_equal_approx(montes_layer.motion_mirroring.x, 1881.6), "LayerMontes deve ter motion_mirroring exato de 1881.6!")
+	print("✓ Camadas LayerParallax2 (940.8 px) e LayerMontes (1881.6 px) verificadas com sucesso!")
 
 	# Simula atingir pontuação de 700 (virada para noite)
 	GameManager.score = 700

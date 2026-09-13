@@ -51,16 +51,16 @@ func _apply_type() -> void:
 		_current_frame = 0
 		_anim_timer = 0.0
 		sprite.texture = FOGUEIRA_TEXTURES[0]
-		sprite.scale = Vector2(0.29, 0.29)
-		rect_shape.size = Vector2(46.0, 88.0)
+		sprite.scale = Vector2(0.203, 0.203)
+		rect_shape.size = Vector2(32.2, 61.6)
 	elif obstacle_type == "tall":
 		sprite.texture = load("res://assets/cacto1.png")
-		sprite.scale = Vector2(0.35, 0.35)
-		rect_shape.size = Vector2(50.0, 95.0)
+		sprite.scale = Vector2(0.245, 0.245)
+		rect_shape.size = Vector2(35.0, 66.5)
 	else:
 		sprite.texture = load("res://assets/cacto2.png")
-		sprite.scale = Vector2(0.35, 0.35)
-		rect_shape.size = Vector2(45.0, 90.0)
+		sprite.scale = Vector2(0.245, 0.245)
+		rect_shape.size = Vector2(31.5, 63.0)
 
 	collision.shape = rect_shape
 

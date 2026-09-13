@@ -57,15 +57,15 @@ func load_config() -> void:
 
 func _load_defaults() -> void:
 	ground_configs = {
-		"arvore": { "texture": "res://assets/arvore.png", "scale": 0.32, "y_offset": -60.0, "z_index": -1, "weight": 1.0, "random_flip": true },
-		"arbusto": { "texture": "res://assets/arbusto.png", "scale": 0.28, "y_offset": -36.0, "z_index": -1, "weight": 1.2, "random_flip": true },
-		"pedra": { "texture": "res://assets/pedra.png", "scale": 0.35, "y_offset": -17.0, "z_index": -1, "weight": 1.5, "random_flip": true },
-		"grama": { "texture": "res://assets/grama.png", "scale": 0.24, "y_offset": -23.0, "z_index": -1, "weight": 1.8, "random_flip": true }
+		"arvore": { "texture": "res://assets/arvore.png", "scale": 0.224, "y_offset": -42.0, "z_index": -1, "weight": 1.0, "random_flip": true },
+		"arbusto": { "texture": "res://assets/arbusto.png", "scale": 0.196, "y_offset": -25.2, "z_index": -1, "weight": 1.2, "random_flip": true },
+		"pedra": { "texture": "res://assets/pedra.png", "scale": 0.245, "y_offset": -11.9, "z_index": -1, "weight": 1.5, "random_flip": true },
+		"grama": { "texture": "res://assets/grama.png", "scale": 0.168, "y_offset": -16.1, "z_index": -1, "weight": 1.8, "random_flip": true }
 	}
 	aerial_configs = {
-		"nuvem": { "texture": "res://assets/nuvem.png", "scale": 0.35, "speed_factor": 0.35, "y_min": 120.0, "y_max": 180.0, "z_index": -3, "weight": 1.2, "bobbing": false },
-		"nuvem2": { "texture": "res://assets/nuvem2.png", "scale": 0.35, "speed_factor": 0.22, "y_min": 70.0, "y_max": 130.0, "z_index": -4, "weight": 1.0, "bobbing": false },
-		"balao": { "texture": "res://assets/balao.png", "scale": 0.26, "speed_factor": 0.28, "y_min": 90.0, "y_max": 230.0, "z_index": -2, "weight": 0.6, "bobbing": true, "bob_speed": 1.5, "bob_amplitude": 12.0 }
+		"nuvem": { "texture": "res://assets/nuvem.png", "scale": 0.245, "speed_factor": 0.35, "y_min": 120.0, "y_max": 180.0, "z_index": -3, "weight": 1.2, "bobbing": false },
+		"nuvem2": { "texture": "res://assets/nuvem2.png", "scale": 0.245, "speed_factor": 0.22, "y_min": 70.0, "y_max": 130.0, "z_index": -4, "weight": 1.0, "bobbing": false },
+		"balao": { "texture": "res://assets/balao.png", "scale": 0.182, "speed_factor": 0.28, "y_min": 90.0, "y_max": 230.0, "z_index": -2, "weight": 0.6, "bobbing": true, "bob_speed": 1.5, "bob_amplitude": 8.4 }
 	}
 
 ## Registra um novo elemento dinamicamente em runtime

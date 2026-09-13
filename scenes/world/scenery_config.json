@@ -2,32 +2,32 @@
   "ground_elements": {
     "arvore": {
       "texture": "res://assets/arvore.png",
-      "scale": 0.32,
-      "y_offset": -60,
+      "scale": 0.224,
+      "y_offset": -42,
       "z_index": -1,
       "weight": 1,
       "random_flip": true
     },
     "arbusto": {
       "texture": "res://assets/arbusto.png",
-      "scale": 0.28,
-      "y_offset": -36,
+      "scale": 0.196,
+      "y_offset": -25,
       "z_index": -1,
       "weight": 1.2,
       "random_flip": true
     },
     "pedra": {
       "texture": "res://assets/pedra.png",
-      "scale": 0.35,
-      "y_offset": -17,
+      "scale": 0.245,
+      "y_offset": -12,
       "z_index": -1,
       "weight": 1.5,
       "random_flip": true
     },
     "grama": {
       "texture": "res://assets/grama.png",
-      "scale": 0.24,
-      "y_offset": -23,
+      "scale": 0.168,
+      "y_offset": -16,
       "z_index": -1,
       "weight": 1.8,
       "random_flip": true
@@ -36,7 +36,7 @@
   "aerial_elements": {
     "nuvem": {
       "texture": "res://assets/nuvem.png",
-      "scale": 0.35,
+      "scale": 0.245,
       "speed_factor": 0.35,
       "y_min": 120,
       "y_max": 180,
@@ -47,7 +47,7 @@
     },
     "nuvem2": {
       "texture": "res://assets/nuvem2.png",
-      "scale": 0.35,
+      "scale": 0.245,
       "speed_factor": 0.22,
       "y_min": 70,
       "y_max": 130,
@@ -58,7 +58,7 @@
     },
     "balao": {
       "texture": "res://assets/balao.png",
-      "scale": 0.26,
+      "scale": 0.182,
       "speed_factor": 0.28,
       "y_min": 90,
       "y_max": 230,
@@ -66,7 +66,7 @@
       "weight": 0.6,
       "bobbing": true,
       "bob_speed": 1.5,
-      "bob_amplitude": 12,
+      "bob_amplitude": 8,
       "random_flip": false
     }
   }
