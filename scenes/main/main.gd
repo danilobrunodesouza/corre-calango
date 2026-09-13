@@ -244,6 +244,30 @@ func _run_automated_test() -> void:
 	assert(player.immortal == false, "player.immortal deve ser false após desativar!")
 	print("✓ Modo Imortal verificado com sucesso!")
 
+	# --- TESTE DO OBSTÁCULO FOGUEIRA ---
+	print("-> Testando obstáculo Fogueira (animação do fogo com 3 sprites)...")
+	var pool_fogueira = world.spawner.get_node_or_null("PoolFogueira")
+	assert(pool_fogueira != null, "PoolFogueira deve existir no Spawner!")
+	var fogueira: Obstacle = pool_fogueira.get_instance() as Obstacle
+	assert(fogueira != null, "Deve conseguir instanciar uma Fogueira do pool!")
+	assert(fogueira.obstacle_type == "fogueira", "Tipo deve ser 'fogueira'!")
+	assert(fogueira.sprite != null and fogueira.sprite.texture != null, "Sprite da fogueira deve estar carregado!")
+	assert(fogueira.collision != null and fogueira.collision.shape != null, "Fogueira deve possuir colisor!")
+
+	# Testa ciclo de animação da fogueira (3 sprites: fogueira1, fogueira2, fogueira3)
+	var tex1 = fogueira.sprite.texture
+	fogueira._process(0.11)
+	var tex2 = fogueira.sprite.texture
+	fogueira._process(0.11)
+	var tex3 = fogueira.sprite.texture
+	fogueira._process(0.11)
+	var tex4 = fogueira.sprite.texture
+	assert(tex1 != tex2, "Animação de fogo: Frame 1 deve transitar para Frame 2!")
+	assert(tex2 != tex3, "Animação de fogo: Frame 2 deve transitar para Frame 3!")
+	assert(tex4 == tex1, "Animação de fogo: Frame 3 deve retornar ciclicamente para Frame 1!")
+	print("✓ Animação dos 3 sprites de fogo verificada com sucesso!")
+	fogueira.returned_to_pool.emit()
+
 	# --- TESTE DE GAME OVER ---
 	print("-> Testando Game Over...")
 	GameManager.trigger_game_over()

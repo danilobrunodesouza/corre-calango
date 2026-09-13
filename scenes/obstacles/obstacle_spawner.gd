@@ -9,6 +9,7 @@ const ObstacleScript = preload("res://scenes/obstacles/obstacle.gd")
 
 var _pool_tall: Node
 var _pool_wide: Node
+var _pool_fogueira: Node
 var _timer: float = 0.0
 var _next_spawn: float = 2.0
 var _is_active: bool = false
@@ -32,6 +33,15 @@ func _ready() -> void:
 		return o
 	, 5)
 
+	_pool_fogueira = ObjectPoolScript.new()
+	_pool_fogueira.name = "PoolFogueira"
+	add_child(_pool_fogueira)
+	_pool_fogueira.init_pool(func() -> Node:
+		var o: Node = ObstacleScript.new()
+		o.setup("fogueira")
+		return o
+	, 5)
+
 	GameManager.game_started.connect(_on_game_started)
 	GameManager.game_over_triggered.connect(_on_game_over)
 
@@ -49,6 +59,8 @@ func _clear_obstacles() -> void:
 		_pool_tall.return_all()
 	if _pool_wide:
 		_pool_wide.return_all()
+	if _pool_fogueira:
+		_pool_fogueira.return_all()
 
 func _process(delta: float) -> void:
 	if not _is_active or GameManager.state != GameManager.GameState.PLAYING:
@@ -65,7 +77,15 @@ func _schedule_next() -> void:
 	_next_spawn = randf_range(lerpf(1.5, 0.75, ratio), lerpf(2.8, 1.4, ratio))
 
 func _spawn_obstacle() -> void:
-	var pool: Node = _pool_tall if randf() > 0.4 else _pool_wide
+	var r := randf()
+	var pool: Node
+	if r < 0.35:
+		pool = _pool_tall
+	elif r < 0.70:
+		pool = _pool_wide
+	else:
+		pool = _pool_fogueira
+
 	var obs: Node2D = pool.get_instance() as Node2D
 	if obs == null:
 		return

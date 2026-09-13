@@ -5,10 +5,19 @@ extends Area2D
 
 signal returned_to_pool
 
+const FOGUEIRA_TEXTURES: Array[Texture2D] = [
+	preload("res://assets/fogueira1.png"),
+	preload("res://assets/fogueira2.png"),
+	preload("res://assets/fogueira3.png")
+]
+const ANIM_FRAME_TIME: float = 0.1
+
 var speed: float = 300.0
 var sprite: Sprite2D
 var collision: CollisionShape2D
 var obstacle_type: String = "tall"
+var _anim_timer: float = 0.0
+var _current_frame: int = 0
 
 func _ready() -> void:
 	area_entered.connect(_on_area_entered)
@@ -36,21 +45,31 @@ func _ensure_components() -> void:
 
 func _apply_type() -> void:
 	_ensure_components()
-	var tex_path := "res://assets/cacto1.png" if obstacle_type == "tall" else "res://assets/cacto2.png"
-	var tex: Texture2D = load(tex_path)
-	sprite.texture = tex
-	sprite.scale = Vector2(0.35, 0.35)
-
 	var rect_shape := RectangleShape2D.new()
-	if obstacle_type == "tall":
+
+	if obstacle_type == "fogueira":
+		_current_frame = 0
+		_anim_timer = 0.0
+		sprite.texture = FOGUEIRA_TEXTURES[0]
+		sprite.scale = Vector2(0.29, 0.29)
+		rect_shape.size = Vector2(46.0, 88.0)
+	elif obstacle_type == "tall":
+		sprite.texture = load("res://assets/cacto1.png")
+		sprite.scale = Vector2(0.35, 0.35)
 		rect_shape.size = Vector2(50.0, 95.0)
 	else:
+		sprite.texture = load("res://assets/cacto2.png")
+		sprite.scale = Vector2(0.35, 0.35)
 		rect_shape.size = Vector2(45.0, 90.0)
 
 	collision.shape = rect_shape
 
 func on_spawn() -> void:
 	speed = GameManager.game_speed
+	_anim_timer = 0.0
+	if obstacle_type == "fogueira":
+		_current_frame = 0
+		sprite.texture = FOGUEIRA_TEXTURES[0]
 	set_deferred("monitoring", true)
 	set_deferred("monitorable", true)
 
@@ -62,6 +81,13 @@ func on_despawn() -> void:
 func _process(delta: float) -> void:
 	if GameManager.state != GameManager.GameState.PLAYING:
 		return
+
+	if obstacle_type == "fogueira":
+		_anim_timer += delta
+		if _anim_timer >= ANIM_FRAME_TIME:
+			_anim_timer -= ANIM_FRAME_TIME
+			_current_frame = (_current_frame + 1) % FOGUEIRA_TEXTURES.size()
+			sprite.texture = FOGUEIRA_TEXTURES[_current_frame]
 
 	position.x -= speed * delta
 	if position.x < -200.0:
