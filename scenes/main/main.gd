@@ -6,6 +6,8 @@ const HUDScript = preload("res://scenes/ui/hud.gd")
 const StartScreenScript = preload("res://scenes/ui/start_screen.gd")
 const GameOverScreenScript = preload("res://scenes/ui/game_over_screen.gd")
 const DayNightCycleScript = preload("res://scenes/effects/day_night_cycle.gd")
+const SceneryManagerScript = preload("res://scenes/world/scenery_manager.gd")
+const SceneryItemScript = preload("res://scenes/world/scenery_item.gd")
 
 var world: Node2D
 var hud: CanvasLayer
@@ -128,6 +130,17 @@ func _run_automated_test() -> void:
 	assert(sm.get("current_state").name == "Run", "Estado inicial deve ser Run!")
 	print("✓ StateMachine verificada: estado inicial ativo é ", sm.get("current_state").name)
 
+	# --- TESTE DO SCENERY MANAGER (ELEMENTOS DE SOLO E AR) ---
+	print("-> Testando SceneryManager (elementos de solo e aéreos)...")
+	var scenery_mgr = world.get_node_or_null("SceneryManager")
+	assert(scenery_mgr != null, "SceneryManager deve existir no World!")
+	assert(scenery_mgr.ground_configs.has("arvore"), "Configuração de árvores deve existir!")
+	assert(scenery_mgr.ground_configs.has("arbusto"), "Configuração de arbustos deve existir!")
+	assert(scenery_mgr.ground_configs.has("pedra"), "Configuração de pedras deve existir!")
+	assert(scenery_mgr.aerial_configs.has("balao"), "Configuração de balão deve existir!")
+	assert(scenery_mgr.aerial_configs.has("nuvem"), "Configuração de nuvens deve existir!")
+	print("✓ SceneryManager verificado com sucesso: solo e ar configurados!")
+
 	print("-> Iniciando o jogo...")
 	GameManager.start_game()
 	await get_tree().process_frame
@@ -185,11 +198,13 @@ func _run_automated_test() -> void:
 	assert(world.estrelas_node.modulate.a == 0.0, "Estrelas devem iniciar invisíveis no dia!")
 
 	# Verifica que elementos de cenário decorativo não possuem colisores
-	var scenery = world.parallax.get_node_or_null("LayerCenarioChao")
-	assert(scenery != null, "Camada de cenário decorativo deve existir!")
-	for child in scenery.get_children():
-		assert(child is Sprite2D, "Elementos do cenário decorativo devem ser apenas Sprite2D!")
+	assert(world.scenery_manager != null, "SceneryManager deve existir no World!")
+	for child in world.scenery_manager.get_children():
+		assert(child.get_script() == SceneryItemScript, "Filhos do SceneryManager devem ser SceneryItem!")
 		assert(not (child is CollisionObject2D or child is CollisionShape2D), "Cenário não pode ter colisores!")
+		for subchild in child.get_children():
+			assert(subchild is Sprite2D, "Subnós do cenário devem ser Sprite2D!")
+			assert(not (subchild is CollisionObject2D or subchild is CollisionShape2D), "Subnós não podem ter colisores!")
 	print("✓ Cenário decorativo verificado: nenhum colisor presente!")
 
 	# Simula atingir pontuação de 700 (virada para noite)

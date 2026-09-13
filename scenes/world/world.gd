@@ -3,12 +3,14 @@ extends Node2D
 
 const PlayerScript = preload("res://scenes/player/player.gd")
 const ObstacleSpawnerScript = preload("res://scenes/obstacles/obstacle_spawner.gd")
+const SceneryManagerScript = preload("res://scenes/world/scenery_manager.gd")
 
 var parallax: ParallaxBackground
 var ground_sprite: Sprite2D
 var ground_body: StaticBody2D
 var player: CharacterBody2D
 var spawner: Node
+var scenery_manager: Node2D
 
 # Corpos Celestes Dinâmicos
 var sol_sprite: Sprite2D
@@ -24,11 +26,17 @@ const GROUND_Y: float = 460.0
 func _ready() -> void:
 	_build_parallax()
 	_build_ground()
+	_build_scenery()
 	_build_player()
 	_build_spawner()
 	EventBus.day_night_changed.connect(_on_day_night_changed)
 	GameManager.game_started.connect(_reset_celestials)
 	GameManager.restart_requested.connect(_reset_celestials)
+
+func _build_scenery() -> void:
+	scenery_manager = SceneryManagerScript.new()
+	scenery_manager.name = "SceneryManager"
+	add_child(scenery_manager)
 
 func _build_parallax() -> void:
 	parallax = ParallaxBackground.new()
@@ -98,33 +106,6 @@ func _build_parallax() -> void:
 	montes_layer.add_child(montes_sprite)
 	parallax.add_child(montes_layer)
 
-	# 5. Nuvem Grande (nuvem2.png — movimento médio)
-	var nuvem_g_layer := ParallaxLayer.new()
-	nuvem_g_layer.name = "LayerNuvemGrande"
-	nuvem_g_layer.motion_scale = Vector2(0.25, 0.0)
-	nuvem_g_layer.motion_mirroring = Vector2(960.0, 0.0)
-	var nuvem_g_sprite := Sprite2D.new()
-	nuvem_g_sprite.texture = load("res://assets/nuvem2.png")
-	nuvem_g_sprite.scale = Vector2(0.35, 0.35)
-	nuvem_g_sprite.position = Vector2(300.0, 110.0)
-	nuvem_g_layer.add_child(nuvem_g_sprite)
-	parallax.add_child(nuvem_g_layer)
-
-	# 6. Nuvem Média (nuvem.png — movimento rápido)
-	var nuvem_m_layer := ParallaxLayer.new()
-	nuvem_m_layer.name = "LayerNuvemMedia"
-	nuvem_m_layer.motion_scale = Vector2(0.4, 0.0)
-	nuvem_m_layer.motion_mirroring = Vector2(800.0, 0.0)
-	var nuvem_m_sprite := Sprite2D.new()
-	nuvem_m_sprite.texture = load("res://assets/nuvem.png")
-	nuvem_m_sprite.scale = Vector2(0.35, 0.35)
-	nuvem_m_sprite.position = Vector2(650.0, 160.0)
-	nuvem_m_layer.add_child(nuvem_m_sprite)
-	parallax.add_child(nuvem_m_layer)
-
-	# 7. Elementos Cenográficos de Chão (Árvores, Arbustos, Pedras, Grama — SEM BOX COLLIDER)
-	_build_scenery_layer()
-
 func _populate_stars(parent: Node2D) -> void:
 	# Distribuição de estrelas (estrela1 a estrela5) espalhadas pelo céu
 	var star_textures: Array[Texture2D] = [
@@ -153,61 +134,6 @@ func _populate_stars(parent: Node2D) -> void:
 		s.position = star_positions[i]
 		s.scale = Vector2(0.32, 0.32)
 		parent.add_child(s)
-
-func _build_scenery_layer() -> void:
-	# Camada de Parallax de cenário rasteiro sem colisores, sincronizada com o chão (motion_scale 1.0)
-	var scenery_layer := ParallaxLayer.new()
-	scenery_layer.name = "LayerCenarioChao"
-	scenery_layer.motion_scale = Vector2(1.0, 0.0)
-	scenery_layer.motion_mirroring = Vector2(1920.0, 0.0)
-	scenery_layer.z_index = -1 # Atrás do player e dos cactos de obstáculo
-
-	var arvore_tex: Texture2D = load("res://assets/arvore.png")
-	var arbusto_tex: Texture2D = load("res://assets/arbusto.png")
-	var pedra_tex: Texture2D = load("res://assets/pedra.png")
-	var grama_tex: Texture2D = load("res://assets/grama.png")
-
-	# 1. Árvores (arvore.png 256x384 -> scale 0.32 -> altura ~123px, base no chão 460)
-	if arvore_tex:
-		var arvore_x := [280.0, 1260.0]
-		for ax in arvore_x:
-			var s := Sprite2D.new()
-			s.texture = arvore_tex
-			s.scale = Vector2(0.32, 0.32)
-			s.position = Vector2(ax, GROUND_Y - 60.0)
-			scenery_layer.add_child(s)
-
-	# 2. Arbustos (arbusto.png 384x256 -> scale 0.28 -> altura ~72px, base no chão 460)
-	if arbusto_tex:
-		var arbusto_x := [520.0, 960.0, 1680.0]
-		for bx in arbusto_x:
-			var s := Sprite2D.new()
-			s.texture = arbusto_tex
-			s.scale = Vector2(0.28, 0.28)
-			s.position = Vector2(bx, GROUND_Y - 36.0)
-			scenery_layer.add_child(s)
-
-	# 3. Pedras (pedra.png 96x96 -> scale 0.35 -> altura ~34px, base no chão 460)
-	if pedra_tex:
-		var pedra_x := [160.0, 740.0, 1420.0, 1860.0]
-		for px in pedra_x:
-			var s := Sprite2D.new()
-			s.texture = pedra_tex
-			s.scale = Vector2(0.35, 0.35)
-			s.position = Vector2(px, GROUND_Y - 17.0)
-			scenery_layer.add_child(s)
-
-	# 4. Tufos de grama (grama.png 128x192 -> scale 0.24 -> altura ~46px, base no chão 460)
-	if grama_tex:
-		var grama_x := [80.0, 420.0, 650.0, 860.0, 1120.0, 1540.0]
-		for gx in grama_x:
-			var s := Sprite2D.new()
-			s.texture = grama_tex
-			s.scale = Vector2(0.24, 0.24)
-			s.position = Vector2(gx, GROUND_Y - 23.0)
-			scenery_layer.add_child(s)
-
-	parallax.add_child(scenery_layer)
 
 func _build_ground() -> void:
 	var ground_node := Node2D.new()
