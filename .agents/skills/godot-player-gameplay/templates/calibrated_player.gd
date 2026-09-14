@@ -1,5 +1,5 @@
-## Player — Calango com chapéu de cangaceiro.
-## CharacterBody2D com StateMachine e animações alinhadas por centro.
+## Player — Calango com Ancoragem Canônica de Solo (Ground Anchor).
+## CharacterBody2D com StateMachine desacoplada e matriz de offsets por animação.
 class_name Player
 extends CharacterBody2D
 
@@ -8,12 +8,24 @@ const RunStateScript = preload("res://scenes/player/states/run_state.gd")
 const JumpStateScript = preload("res://scenes/player/states/jump_state.gd")
 const DuckStateScript = preload("res://scenes/player/states/duck_state.gd")
 
+## Constantes de Física do Salto e Movimento
 const GRAVITY: float = 1400.0
 const JUMP_FORCE: float = -525.0
+
+## Dimensões Anatômicas da Colisão
 const NORMAL_HEIGHT: float = 44.8
 const DUCK_HEIGHT: float = 22.4
 const GROUND_Y_LOCAL: float = 22.4 # NORMAL_HEIGHT / 2.0 (ponto de contato com o chão)
 const SPRITE_SCALE: Vector2 = Vector2(0.245, 0.245)
+
+## Matriz de Calibração de Ground Anchor
+## Cada animação compensa as diferenças de corte do frame para que a pata
+## toque exatamente em GROUND_Y_LOCAL (+22.4 px)
+const ANIMATION_OFFSETS: Dictionary = {
+	"run": Vector2(0.0, 28.6),
+	"jump": Vector2(0.0, 35.0),
+	"duck": Vector2(0.0, 53.4),
+}
 
 ## Modo imortal para testes (sincronizado com GameManager.immortal)
 @export var immortal: bool:
@@ -33,7 +45,7 @@ func _ready() -> void:
 	_ensure_child_nodes()
 
 func _ensure_child_nodes() -> void:
-	# 1. AnimatedSprite2D (configurado com animações antes de iniciar a StateMachine)
+	# 1. AnimatedSprite2D
 	sprite = get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 	if sprite == null:
 		sprite = AnimatedSprite2D.new()
@@ -53,7 +65,7 @@ func _ensure_child_nodes() -> void:
 		collision.shape = shape
 		add_child(collision)
 
-	# 3. HurtboxArea (Detecção de colisão com cactos)
+	# 3. HurtboxArea (Detecção de colisão com perigos)
 	hurtbox_area = get_node_or_null("HurtboxArea") as Area2D
 	if hurtbox_area == null:
 		hurtbox_area = Area2D.new()
@@ -71,7 +83,7 @@ func _ensure_child_nodes() -> void:
 		hurtbox_collision.shape = hshape
 		hurtbox_area.add_child(hurtbox_collision)
 
-	# 4. StateMachine — Adiciona os filhos ANTES de adicionar à árvore e inicializar
+	# 4. StateMachine
 	state_machine = get_node_or_null("StateMachine")
 	if state_machine == null:
 		state_machine = StateMachineScript.new()
@@ -112,6 +124,8 @@ func jump() -> void:
 	EventBus.player_jumped.emit()
 
 func duck_start() -> void:
+	# Ao agachar, a cápsula reduz para DUCK_HEIGHT e o centro desce
+	# para que a base continue rigorosamente ancorada em GROUND_Y_LOCAL (+22.4)
 	if collision and collision.shape is CapsuleShape2D:
 		var shape := collision.shape as CapsuleShape2D
 		shape.height = DUCK_HEIGHT
@@ -135,18 +149,10 @@ func duck_end() -> void:
 		hshape.height = NORMAL_HEIGHT * 0.85
 		hurtbox_collision.position.y = 0.0
 
-## Matriz de Calibração de Ground Anchor calculada via godot-player-gameplay skill
-## Cada animação compensa as diferenças de corte do frame para que a pata
-## toque exatamente em GROUND_Y_LOCAL (+22.4 px)
-const ANIMATION_OFFSETS: Dictionary = {
-	"run": Vector2(0.0, 28.6),
-	"jump": Vector2(0.0, 35.0),
-	"duck": Vector2(0.0, 53.4),
-}
-
 func _setup_animations() -> void:
 	if sprite == null:
 		return
+
 	var sheet: Texture2D = load("res://assets/spritesheet (2).png")
 	var run_sheet: Texture2D = load("res://assets/calango-correndo.png")
 	if not run_sheet:
@@ -162,7 +168,7 @@ func _setup_animations() -> void:
 	if frames.has_animation("default"):
 		frames.remove_animation("default")
 
-	# --- CORRENDO — 4 frames em calango-correndo.png (384 px de largura por célula) ---
+	# --- CORRENDO — 4 frames em calango-correndo.png ---
 	frames.add_animation("run")
 	frames.set_animation_speed("run", 5.5)
 	frames.set_animation_loop("run", true)
@@ -180,9 +186,8 @@ func _setup_animations() -> void:
 		atlas.filter_clip = true
 		frames.add_frame("run", atlas)
 
-	# --- PULANDO — 4 frames em calango-spritesheet-pulando.png (384x379 px) ---
-	# Sincronizado matematicamente: tempo de salto físico (0.75s) / 4 frames = 5.33 FPS
-	# Frame 3 com margem calibrada para compensar a sola no solo idêntico ao Frame 0
+	# --- PULANDO — 4 frames em calango-spritesheet-pulando.png ---
+	# Sincronizado: 0.75s de física / 4 frames = 5.33 FPS
 	if jump_sheet:
 		frames.add_animation("jump")
 		frames.set_animation_speed("jump", 5.33)
@@ -201,7 +206,7 @@ func _setup_animations() -> void:
 			atlas.filter_clip = true
 			frames.add_frame("jump", atlas)
 
-	# --- AGACHADO — 2 frames ~360x155, y=835 ---
+	# --- AGACHADO — 2 frames em spritesheet (2).png ---
 	if sheet:
 		frames.add_animation("duck")
 		frames.set_animation_speed("duck", 4.0)
