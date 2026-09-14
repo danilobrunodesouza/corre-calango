@@ -61,8 +61,12 @@ func _update_initial_display() -> void:
 	game_over_screen.hide()
 	hud.hide()
 
-## Usa _unhandled_input para não conflitar com cliques nos botões de UI do HUD
+## Usa _unhandled_input para alternar paletas (C) e não conflitar com cliques nos botões de UI
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_C:
+		PaletteManager.next_palette()
+		return
+
 	if GameManager.state != GameManager.GameState.PLAYING:
 		return
 	_handle_touch_or_mouse(event)
@@ -292,6 +296,48 @@ func _run_automated_test() -> void:
 	assert(tex4 == tex1, "Animação de fogo: Frame 3 deve retornar ciclicamente para Frame 1!")
 	print("✓ Animação dos 3 sprites de fogo verificada com sucesso!")
 	fogueira.returned_to_pool.emit()
+
+	# --- TESTE DO GERENCIAMENTO DE PALETAS DE CORES (DUOTONE) ---
+	print("-> Testando PaletteManager (troca programática de cores e presets)...")
+	assert(PaletteManager != null, "PaletteManager deve existir como Autoload!")
+	assert(PaletteManager.presets.size() >= 8, "Devem existir ao menos 8 presets cadastrados!")
+
+	# 1. Aplica preset 'mandacaru'
+	PaletteManager.set_palette("mandacaru")
+	await get_tree().process_frame
+	assert(PaletteManager.current_preset_id == "mandacaru", "Preset ativo deve ser mandacaru!")
+	var cur_pal := PaletteManager.get_current_palette()
+	assert(cur_pal["name"] == "Mandacaru", "Nome do preset deve ser Mandacaru!")
+	assert(day_night_cycle.shader_material.get_shader_parameter("color_dark") == Color("#0f380f"), "Shader deve ter recebido cor dark do Mandacaru!")
+	assert(day_night_cycle.shader_material.get_shader_parameter("color_light") == Color("#8bac0f"), "Shader deve ter recebido cor light do Mandacaru!")
+	assert(hud.theme_button.text.contains("Mandacaru"), "Botão do HUD deve exibir o nome do tema Mandacaru!")
+	print("✓ Preset Mandacaru verificado no shader e na interface!")
+
+	# 1.1 Testa compatibilidade com alias legado ('gameboy' redireciona para 'mandacaru')
+	PaletteManager.set_palette("gameboy")
+	await get_tree().process_frame
+	assert(PaletteManager.current_preset_id == "mandacaru", "Alias legado 'gameboy' deve resolver para 'mandacaru'!")
+	print("✓ Compatibilidade com alias legado 'gameboy' verificada!")
+
+	# 2. Testa troca programática de cores customizadas (set_colors)
+	var custom_dark := Color(0.1, 0.2, 0.3)
+	var custom_light := Color(0.8, 0.9, 1.0)
+	PaletteManager.set_colors(custom_dark, custom_light, "Custom Blue")
+	await get_tree().process_frame
+	assert(PaletteManager.current_dark == custom_dark, "PaletteManager deve armazenar a cor dark customizada!")
+	assert(PaletteManager.current_light == custom_light, "PaletteManager deve armazenar a cor light customizada!")
+	assert(day_night_cycle.shader_material.get_shader_parameter("color_dark") == custom_dark, "Shader deve receber cor dark customizada!")
+	assert(day_night_cycle.shader_material.get_shader_parameter("color_light") == custom_light, "Shader deve receber cor light customizada!")
+	print("✓ Troca programática com set_colors(dark, light) verificada com sucesso!")
+
+	# 3. Testa avanço cíclico com next_palette()
+	PaletteManager.set_palette("cangaco")
+	await get_tree().process_frame
+	var next_id := PaletteManager.next_palette()
+	assert(next_id == "xilogravura", "next_palette após cangaco deve ser xilogravura!")
+	PaletteManager.set_palette("cangaco") # Restaura para cangaco
+	await get_tree().process_frame
+	print("✓ Ciclo com next_palette() e restauração para Cangaço verificados!")
 
 	# --- TESTE DE GAME OVER ---
 	print("-> Testando Game Over...")

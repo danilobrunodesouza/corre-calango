@@ -7,15 +7,17 @@ var hi_label: Label
 var jump_button: Button
 var duck_button: Button
 var day_night_button: Button
+var theme_button: Button
 
 func _ready() -> void:
 	_build_ui()
 	GameManager.score_changed.connect(_on_score_changed)
 	EventBus.day_night_changed.connect(_on_day_night_changed)
+	PaletteManager.palette_changed.connect(_on_palette_changed)
 	_update_labels(0)
 
 func _build_ui() -> void:
-	# Top bar (Botão Dia/Noite à esquerda, Scores à direita)
+	# Top bar (Botão Dia/Noite e Tema à esquerda, Scores à direita)
 	var margin := MarginContainer.new()
 	margin.name = "MarginContainer"
 	margin.anchor_right = 1.0
@@ -39,6 +41,16 @@ func _build_ui() -> void:
 	_style_control_button(day_night_button)
 	day_night_button.pressed.connect(_on_day_night_pressed)
 	hbox.add_child(day_night_button)
+
+	# Botão de Troca de Tema / Paleta
+	theme_button = Button.new()
+	theme_button.name = "ThemeButton"
+	theme_button.text = "🎨 %s" % PaletteManager.current_palette_name
+	theme_button.focus_mode = Control.FOCUS_NONE
+	theme_button.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS
+	_style_control_button(theme_button)
+	theme_button.pressed.connect(_on_theme_pressed)
+	hbox.add_child(theme_button)
 
 	# Espaçador flexível para posicionar o score no canto direito
 	var spacer := Control.new()
@@ -148,6 +160,13 @@ func _on_day_night_pressed() -> void:
 func _on_day_night_changed(is_night: bool) -> void:
 	if day_night_button:
 		day_night_button.text = "☀️ DIA" if is_night else "🌙 NOITE"
+
+func _on_theme_pressed() -> void:
+	PaletteManager.next_palette()
+
+func _on_palette_changed(_dark: Color, _light: Color) -> void:
+	if theme_button:
+		theme_button.text = "🎨 %s" % PaletteManager.current_palette_name
 
 func _style_control_button(btn: Button) -> void:
 	btn.add_theme_font_size_override("font_size", 16)

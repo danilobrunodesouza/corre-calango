@@ -20,13 +20,16 @@ const INVERT_SHADER_CODE: String = """shader_type canvas_item;
 
 uniform sampler2D screen_texture : hint_screen_texture, filter_nearest;
 uniform float invert_progress : hint_range(0.0, 1.0) = 1.0;
+uniform vec4 color_dark : source_color = vec4(0.10, 0.10, 0.10, 1.0);
+uniform vec4 color_light : source_color = vec4(0.96, 0.96, 0.96, 1.0);
 
 void fragment() {
 	vec4 screen_color = texture(screen_texture, SCREEN_UV);
-	// Dia (invert_progress = 1.0): Fundo claro suave (0.96) e elementos em silhueta escura (0.10)
-	// Noite (invert_progress = 0.0): Fundo escuro (0.0) e elementos brilhando em branco (1.0)
-	vec3 day_color = vec3(0.96) - screen_color.rgb * 0.86;
-	vec3 night_color = screen_color.rgb;
+	// screen_color.r mapeia os tons de preto (0.0 fundo) a branco (1.0 silhuetas)
+	// Dia (invert_progress = 1.0): Fundo claro (color_light) e elementos escuros (color_dark)
+	// Noite (invert_progress = 0.0): Fundo escuro (color_dark) e elementos claros (color_light)
+	vec3 day_color = mix(color_light.rgb, color_dark.rgb, screen_color.r);
+	vec3 night_color = mix(color_dark.rgb, color_light.rgb, screen_color.r);
 	COLOR = vec4(mix(night_color, day_color, invert_progress), screen_color.a);
 }
 """
@@ -52,15 +55,23 @@ func _setup_fullscreen_shader() -> void:
 	shader_material.shader = shader
 	# Começa de DIA com fundo claro (invert_progress = 1.0)
 	shader_material.set_shader_parameter("invert_progress", 1.0)
+	shader_material.set_shader_parameter("color_dark", PaletteManager.current_dark)
+	shader_material.set_shader_parameter("color_light", PaletteManager.current_light)
 
 	color_rect.material = shader_material
 	add_child(color_rect)
 
 func _connect_signals() -> void:
+	PaletteManager.palette_changed.connect(_on_palette_changed)
 	GameManager.score_changed.connect(_on_score_changed)
 	GameManager.game_started.connect(_on_game_started)
 	GameManager.restart_requested.connect(_on_restart_requested)
 	EventBus.request_day_night_toggle.connect(toggle_day_night)
+
+func _on_palette_changed(dark: Color, light: Color) -> void:
+	if shader_material:
+		shader_material.set_shader_parameter("color_dark", dark)
+		shader_material.set_shader_parameter("color_light", light)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_N:
