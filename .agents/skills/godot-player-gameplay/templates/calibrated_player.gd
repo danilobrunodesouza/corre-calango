@@ -22,9 +22,9 @@ const SPRITE_SCALE: Vector2 = Vector2(0.245, 0.245)
 ## Cada animação compensa as diferenças de corte do frame para que a pata
 ## toque exatamente em GROUND_Y_LOCAL (+22.4 px)
 const ANIMATION_OFFSETS: Dictionary = {
-	"run": Vector2(0.0, 28.6),
-	"jump": Vector2(0.0, 35.0),
-	"duck": Vector2(0.0, 53.4),
+	"run": Vector2(0.0, 58.6),
+	"jump": Vector2(0.0, 65.0),
+	"duck": Vector2(0.0, 83.4),
 }
 
 ## Modo imortal para testes (sincronizado com GameManager.immortal)
@@ -40,12 +40,20 @@ var hurtbox_area: Area2D
 var hurtbox_collision: CollisionShape2D
 var state_machine: Node
 
+var ground_y: float = 437.6
+
 func _ready() -> void:
 	add_to_group("player")
 	_ensure_child_nodes()
+	ground_y = global_position.y
+
+func get_ground_y() -> float:
+	if is_on_floor() or ground_y == 0.0:
+		ground_y = global_position.y
+	return ground_y
 
 func _ensure_child_nodes() -> void:
-	# 1. AnimatedSprite2D
+	# 1. AnimatedSprite2D (configurado com animações antes de iniciar a StateMachine)
 	sprite = get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 	if sprite == null:
 		sprite = AnimatedSprite2D.new()
@@ -108,6 +116,8 @@ func _ensure_child_nodes() -> void:
 func _physics_process(delta: float) -> void:
 	velocity.y += GRAVITY * delta
 	move_and_slide()
+	if is_on_floor():
+		ground_y = global_position.y
 
 func is_on_floor_custom() -> bool:
 	return is_on_floor()

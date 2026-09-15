@@ -1,11 +1,9 @@
-## HUD — exibe pontuação, recorde e botões de toque na tela (Pular e Abaixar).
+## HUD — exibe pontuação, recorde e botões de tema e dia/noite.
 class_name HUD
 extends CanvasLayer
 
 var score_label: Label
 var hi_label: Label
-var jump_button: Button
-var duck_button: Button
 var day_night_button: Button
 var theme_button: Button
 
@@ -70,80 +68,6 @@ func _build_ui() -> void:
 	score_label.add_theme_color_override("font_color", Color.WHITE)
 	score_label.text = "00000"
 	hbox.add_child(score_label)
-
-	# --- Botão de Pular (Inferior Direito) ---
-	jump_button = Button.new()
-	jump_button.name = "JumpButton"
-	jump_button.text = "▲ PULAR"
-	jump_button.anchor_left = 1.0
-	jump_button.anchor_top = 1.0
-	jump_button.anchor_right = 1.0
-	jump_button.anchor_bottom = 1.0
-	jump_button.offset_left = -190.0
-	jump_button.offset_top = -90.0
-	jump_button.offset_right = -20.0
-	jump_button.offset_bottom = -20.0
-	jump_button.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS
-	jump_button.focus_mode = Control.FOCUS_NONE
-	_style_touch_button(jump_button, Color(0.2, 0.6, 0.2, 0.75))
-	jump_button.button_down.connect(_on_jump_down)
-	jump_button.button_up.connect(_on_jump_up)
-	add_child(jump_button)
-
-	# --- Botão de Abaixar (Inferior Esquerdo) ---
-	duck_button = Button.new()
-	duck_button.name = "DuckButton"
-	duck_button.text = "▼ ABAIXAR"
-	duck_button.anchor_left = 0.0
-	duck_button.anchor_top = 1.0
-	duck_button.anchor_right = 0.0
-	duck_button.anchor_bottom = 1.0
-	duck_button.offset_left = 20.0
-	duck_button.offset_top = -90.0
-	duck_button.offset_right = 190.0
-	duck_button.offset_bottom = -20.0
-	duck_button.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS
-	duck_button.focus_mode = Control.FOCUS_NONE
-	_style_touch_button(duck_button, Color(0.5, 0.3, 0.1, 0.75))
-	duck_button.button_down.connect(_on_duck_down)
-	duck_button.button_up.connect(_on_duck_up)
-	add_child(duck_button)
-
-func _style_touch_button(btn: Button, bg_color: Color) -> void:
-	btn.add_theme_font_size_override("font_size", 20)
-	var style_normal := StyleBoxFlat.new()
-	style_normal.bg_color = bg_color
-	style_normal.set_corner_radius_all(12)
-	style_normal.border_width_left = 2
-	style_normal.border_width_top = 2
-	style_normal.border_width_right = 2
-	style_normal.border_width_bottom = 2
-	style_normal.border_color = Color(1.0, 1.0, 1.0, 0.6)
-
-	var style_pressed := StyleBoxFlat.new()
-	style_pressed.bg_color = bg_color.lightened(0.25)
-	style_pressed.set_corner_radius_all(12)
-	style_pressed.border_width_left = 3
-	style_pressed.border_width_top = 3
-	style_pressed.border_width_right = 3
-	style_pressed.border_width_bottom = 3
-	style_pressed.border_color = Color.WHITE
-
-	btn.add_theme_stylebox_override("normal", style_normal)
-	btn.add_theme_stylebox_override("pressed", style_pressed)
-	btn.add_theme_stylebox_override("hover", style_normal)
-
-func _on_jump_down() -> void:
-	Input.action_press("jump")
-
-func _on_jump_up() -> void:
-	Input.action_release("jump")
-
-func _on_duck_down() -> void:
-	Input.action_press("duck")
-
-func _on_duck_up() -> void:
-	Input.action_release("duck")
 
 func _on_score_changed(s: int) -> void:
 	_update_labels(s)

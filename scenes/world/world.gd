@@ -178,14 +178,15 @@ func _build_ground() -> void:
 func _build_player() -> void:
 	player = PlayerScript.new() as CharacterBody2D
 	player.name = "Player"
-	player.position = Vector2(120.0, GROUND_Y - 28.0)
+	player.position = Vector2(120.0, GROUND_Y - 22.4)
 	add_child(player)
 
 func _build_spawner() -> void:
 	spawner = ObstacleSpawnerScript.new()
 	spawner.name = "ObstacleSpawner"
 	spawner.set("spawn_x", 1050.0)
-	spawner.set("ground_y", GROUND_Y - 39.2)
+	spawner.set("player", player)
+	spawner.set("ground_y", player.position.y)
 	add_child(spawner)
 
 func _reset_celestials() -> void:

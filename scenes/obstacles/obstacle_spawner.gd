@@ -5,8 +5,9 @@ const ObjectPoolScript = preload("res://scenes/obstacles/object_pool.gd")
 const ObstacleScript = preload("res://scenes/obstacles/obstacle.gd")
 
 @export var spawn_x: float = 1050.0
-@export var ground_y: float = 420.8
+@export var ground_y: float = 437.6
 
+var player: CharacterBody2D
 var _pool_tall: Node
 var _pool_wide: Node
 var _pool_fogueira: Node
@@ -90,5 +91,14 @@ func _spawn_obstacle() -> void:
 	if obs == null:
 		return
 
-	obs.global_position = Vector2(spawn_x, ground_y)
+	var current_ground_y: float = ground_y
+	if player == null and is_inside_tree():
+		player = get_tree().get_first_node_in_group("player") as CharacterBody2D
+	if player != null:
+		if player.has_method("get_ground_y"):
+			current_ground_y = player.get_ground_y()
+		else:
+			current_ground_y = player.global_position.y
+
+	obs.global_position = Vector2(spawn_x, current_ground_y)
 	obs.set("speed", GameManager.game_speed)

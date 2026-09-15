@@ -5,7 +5,7 @@
       "scale": 0.245,
       "collider_size": [35.0, 66.5],
       "collider_offset": [0.0, 0.0],
-      "ground_y": 420.8,
+      "ground_y": 437.6,
       "weight": 1.0,
       "is_animated": false
     },
@@ -14,7 +14,7 @@
       "scale": 0.245,
       "collider_size": [31.5, 63.0],
       "collider_offset": [0.0, 0.0],
-      "ground_y": 420.8,
+      "ground_y": 437.6,
       "weight": 1.0,
       "is_animated": false
     },
@@ -27,7 +27,7 @@
       "scale": 0.203,
       "collider_size": [32.2, 61.6],
       "collider_offset": [0.0, 0.0],
-      "ground_y": 420.8,
+      "ground_y": 437.6,
       "weight": 0.8,
       "is_animated": true,
       "anim_fps": 10.0
